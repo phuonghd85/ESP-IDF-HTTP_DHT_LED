@@ -1,0 +1,176 @@
+<!DOCTYPE HTML><html>
+<head>
+    <title>ESP32 DASHBOARD</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="icon" href="data:,">
+    <style>
+        html {font-family: Arial; display: inline-block; text-align: center;}
+        h1 {  font-size: 2rem;}
+        body {  margin: 0;}
+        .topnav { overflow: hidden; background-color: #2f4468; color: white; font-size: 1.7rem; }
+        .content { padding: 20px; }
+        .card { background-color: white; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); }
+        .cards { max-width: 700px; margin: 0 auto; display: grid; grid-gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+        .reading { font-size: 2.8rem; }
+        .timestamp { color: #bebebe; font-size: 1rem; }
+        .card-title{ font-size: 1.2rem; font-weight : bold; }
+        .card.temperature { color: #B10F2E; }
+        .card.humidity { color: #50B8B4; }
+        .card.gasValue { color: #1ee917; }
+
+
+        /* CSS for SWITCH */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="topnav">
+        <h1>Smart Home</h1>
+    </div>
+    <div class="content">
+        <div class="cards">
+            <div class="card temperature">
+                <p class="card-title"><i class="fas fa-thermometer-half"></i> BOARD #1 - TEMPERATURE</p><p><span class="reading"><span id="t1"></span> &deg;C</span></p><p class="timestamp">Last Reading: <span id="rt1"></span></p>
+            </div>
+            <div class="card humidity">
+                <p class="card-title"><i class="fas fa-tint"></i> BOARD #1 - HUMIDITY</p><p><span class="reading"><span id="h1"></span> &percnt;</span></p><p class="timestamp">Last Reading: <span id="rh1"></span></p>
+            </div>
+            <div class="card gasValue">
+                <p class="card-title"><i class="fas fa-tint"></i> BOARD #1 - GASVALUE</p><p><span class="reading"><span id="g1"></span> ppm</span></p><p class="timestamp">Last Reading: <span id="rg1"></span></p>
+            </div>
+            <div class="card dustValue">
+                <p class="card-title"><i class="fas fa-tint"></i> BOARD #1 - DUSTVALUE</p><p><span class="reading"><span id="d1"></span> mg/m3</span></p><p class="timestamp">Last Reading: <span id="rg1"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Switch -->
+    <h2>livingroomLight</h2>
+    <label class="switch" id="switch1">
+        <input type="checkbox" checked id="checkbox1" onclick="myFunction1()">
+        <span class="slider round"></span>
+    </label>
+
+    <!-- SLIDER -->
+    <h2>bedroomLight</h2>
+    <div class="slidecontainer">
+        <p>Adjust the brightness: </p>
+        <input type="range" min="1" max="100" value="50" id="myRange">
+        <p>Value: <span id="demo"></span></p>
+    </div>
+
+    <script>
+    var xhttp1 = new XMLHttpRequest(); // phương thức chỉ load lại những thông số thay đổi trên web
+
+    xhttp1.onreadystatechange = function() {
+        const obj = JSON.parse(this.responseText); // giải mã JSON -->string
+        var element1 = document.getElementById('t1');
+        element1.innerText = obj.temperature;   // lấy giá trị temp truyền vào gưir lên web
+        var element2 = document.getElementById('h1');
+        element2.innerText = obj.humidity;
+        var element2 = document.getElementById('g1');
+        element2.innerText = obj.gasValue;
+        var element2 = document.getElementById('d1');
+        element2.innerText = obj.dustValue;
+    }
+
+    // hàm xử lý post switch
+    function myFunction1() {
+        var checkBox = document.getElementById('checkbox1')
+        if(checkBox.checked == true) {
+            xhttp1.open("POST", "/switch1", true)
+            xhttp1.send('1')
+        } else {
+            xhttp1.open("POST", "/switch1", true)
+            xhttp1.send('0')
+        }
+    }
+
+    // Xử lý SLIDER
+    var slider = document.getElementById("myRange");
+    var output = document.getElementById("demo");
+    output.innerHTML = slider.value;
+    
+    slider.oninput = function() {
+        output.innerHTML = this.value;
+        xhttp1.open("POST", "/slider", true)
+        xhttp1.send(this.value)
+    }
+
+    setInterval(function() {
+        xhttp1.open("GET", "/getdatadht11", true);
+        xhttp1.send();
+    }, 2000);
+    
+    // setInterval(function() {
+    //     xhttp1.open("GET", "/getdatamq135", true);
+    //     xhttp1.send();
+    // }, 2000);
+
+    // setInterval(function() {
+    //     xhttp1.open("GET", "/getdatadust", true);
+    //     xhttp1.send();
+    // }, 2000);
+    </script>
+</body>
+</html>
